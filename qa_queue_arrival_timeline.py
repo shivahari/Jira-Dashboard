@@ -11,6 +11,7 @@ from jira import JIRA
 import arrow, time
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 from datetime import datetime, timedelta
 
 JIRA_URL = 'https://jira.secondlife.com'
@@ -58,7 +59,9 @@ def plot_arrival_dates(raw_arrival_times):
     x_points = np.array(x_points)
     y_points = np.array(y_points)
 
-    plt.plot(x_points,y_points)
+    rows = [(x,y) for x,y in zip(x_points,y_points)]
+    df = pd.DataFrame(rows,columns=['Date','Number of tickets'])
+    df.plot.bar()
     plt.show()
 
     return
@@ -68,11 +71,11 @@ def run_queue_arrival_analysis(state,last_n_days=30):
     "Produce arrival queue statistics for a given state"
     #1. Get the arrival times into the state
     raw_arrival_times = get_queue_arrival_times(state,last_n_days)
-    print '-Got the arrival times for the queuse state: %s'%state
+    print '-Got the arrival times for the queue state: %s'%state
     print '----Queue arrival times for %s: '%state,raw_arrival_times
 
     plot_arrival_dates(raw_arrival_times)
-    print '-Plotted the arrival quueue for %s'%state
+    print '-Plotted the arrival queue for %s'%state
 
 
 def run_qa_queue_arrival_analysis(last_n_days=30):
