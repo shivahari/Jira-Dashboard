@@ -37,7 +37,7 @@ class ConnectJira():
                             now_date = arrow.now()
                             ticket_in_qa_time = now_date - arrow.get(da_update_date)
                             print ticket,item.toString,ticket_in_qa_time
-                            status_qa_data_frame.loc[len(status_qa_data_frame)] = [ticket.key,item.toString,ticket_in_qa_time.days]
+                            status_qa_data_frame.loc[len(status_qa_data_frame)] = {'Ticket-ID':ticket.key,'Status':item.toString,'Days':ticket_in_qa_time.days}
         self.status_qa_data_frame = status_qa_data_frame
         print self.status_qa_data_frame
 
@@ -71,9 +71,9 @@ class ConnectJira():
                     total_word_count.append(len(des_word_count))
             if total_word_count > 0:
                 avg_words = np.average(total_word_count)
-                verbose_data_frame.loc[len(verbose_data_frame)] = [reporter,avg_words]
+                verbose_data_frame.loc[len(verbose_data_frame)] = {'Reporter':reporter,'Avg_word_count':avg_words}
         self.verbose_data_frame = verbose_data_frame
-        self.plot_graph(verbose_data_frame['Reporter'],verbose_data_frame['Avg_word_count'])
+        #self.plot_graph(verbose_data_frame['Reporter'],verbose_data_frame['Avg_word_count'])
         
         print verbose_data_frame
 
