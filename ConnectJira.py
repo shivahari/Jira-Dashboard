@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import re
 import arrow
+import matplotlib.pyplot as plt
 
 class ConnectJira():
     """
@@ -21,7 +22,7 @@ class ConnectJira():
 
     def get_issues_in_qa(self):
         "Get the issues"
-        issue_dict = {}
+        status_qa_data_frame = pd.DataFrame(columns=['Ticket-ID','Status','Days'])
         issues = self.jira_obj.search_issues("'project'='%s' AND status = 'In QA'"%self.project)
         for issue in issues:
             ticket = self.jira_obj.issue(issue.key,expand='changelog')
@@ -36,11 +37,55 @@ class ConnectJira():
                             now_date = arrow.now()
                             ticket_in_qa_time = now_date - arrow.get(da_update_date)
                             print ticket,item.toString,ticket_in_qa_time
+                            status_qa_data_frame.loc[len(status_qa_data_frame)] = [ticket.key,item.toString,ticket_in_qa_time.days]
+        self.status_qa_data_frame = status_qa_data_frame
+        print self.status_qa_data_frame
 
+    def get_reporter_list(self):
+        "Get the list of JIRA ticket reporters"
+        #reporter_list_data_frame = 
+        reporter_list = []
+        tickets= self.jira_obj.search_issues("'project'='%s'"%self.project)
+        for ticket in tickets:
+            issue = self.jira_obj.issue(ticket.key)
+            reporter = issue.fields.reporter.name 
+            reporter_list.append(reporter)
+            #des_word_count =  issue.fields.description.split(' ')
+            #print len(des_word_count)
+            #if len(des_word_count) == 4:
+                #print ticket.key
+        
+        return reporter_list
+
+    def get_description_reporters_data_frame(self):
+        "Get a dataframe of reporters and words used in description"
+        reporter_list = self.get_reporter_list()
+        verbose_data_frame = pd.DataFrame(columns=['Reporter','Avg_word_count'])
+        for reporter in reporter_list:
+            tickets = self.jira_obj.search_issues("'project'='%s' AND 'reporter'='%s'"%(self.project,reporter))
+            total_word_count = []
+            for ticket in tickets:
+                issue = self.jira_obj.issue(ticket.key)
+                if issue.fields.reporter.name == reporter:
+                    des_word_count =  issue.fields.description.split(' ')
+                    total_word_count.append(len(des_word_count))
+            if total_word_count > 0:
+                avg_words = np.average(total_word_count)
+                verbose_data_frame.loc[len(verbose_data_frame)] = [reporter,avg_words]
+        self.verbose_data_frame = verbose_data_frame
+        self.plot_graph(verbose_data_frame['Reporter'],verbose_data_frame['Avg_word_count'])
+        
+        print verbose_data_frame
+
+    def plot_graph(self,x_points,y_points):
+        "Plot Graph using the X and Y axis passed"
+        plt.plot(x_points,y_points)
+        plt.show()
 
 if __name__ == '__main__':
     obj = ConnectJira('https://jira.secondlife.com','SUN')
-    obj.get_issues_in_qa()
+    #obj.get_issues_in_qa()
+    obj.get_description_reporters_data_frame()
 
 
         
