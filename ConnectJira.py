@@ -30,9 +30,6 @@ class ConnectJira():
                 for item in action.items:
                     if item.field == 'status':
                         if item.toString == 'In QA':
-                            #2013-04-18T10:18:23.428-0500
-                            #time = re.search('(?P<date>\d{4}[-]\d{2}[-]\d{2})T(?P<time>\d{2}[:]\d{2}[:]\d{2})*',action.created)
-                            #print ticket,item.toString,time.group('date'),time.group('time')
                             da_update_date = action.created
                             now_date = arrow.now()
                             ticket_in_qa_time = now_date - arrow.get(da_update_date)
@@ -50,11 +47,7 @@ class ConnectJira():
             issue = self.jira_obj.issue(ticket.key)
             reporter = issue.fields.reporter.name 
             reporter_list.append(reporter)
-            #des_word_count =  issue.fields.description.split(' ')
-            #print len(des_word_count)
-            #if len(des_word_count) == 4:
-                #print ticket.key
-        
+
         return reporter_list
 
     def get_description_reporters_data_frame(self):
@@ -77,6 +70,22 @@ class ConnectJira():
         
         print verbose_data_frame
 
+    def get_comments(self):
+        "Get the comments"
+        reporter_list = []
+        tickets= self.jira_obj.search_issues("'project'='%s'"%self.project)
+        comment_authors = []
+        comment_authors_data_frame = pd.DataFrame(columns=['Author_name','Comment_word_count','No_times'])
+        for ticket in tickets:
+            issue = self.jira_obj.issue(ticket.key)
+            for item in issue.fields.comment.comments:
+                comment_authors_data_frame.loc[len(comment_authors_data_frame)] = {'Author_name':item.author.name,'Comment_word_count':len(item.body.split(' ')),'No_times':1}
+        unique_comment_authors_data_frame =  comment_authors_data_frame.groupby(['Author_name']).sum()
+        unique_comment_authors_data_frame['Average'] = unique_comment_authors_data_frame['Comment_word_count'] / (unique_comment_authors_data_frame['No_times']*1.0)
+        self.unique_comment_authors_data_frame = unique_comment_authors_data_frame
+        print self.unique_comment_authors_data_frame 
+
+
     def plot_graph(self,x_points,y_points):
         "Plot Graph using the X and Y axis passed"
         plt.plot(x_points,y_points)
@@ -85,7 +94,8 @@ class ConnectJira():
 if __name__ == '__main__':
     obj = ConnectJira('https://jira.secondlife.com','SUN')
     #obj.get_issues_in_qa()
-    obj.get_description_reporters_data_frame()
+    #obj.get_description_reporters_data_frame()
+    obj.get_comments()
 
 
         
