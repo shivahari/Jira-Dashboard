@@ -1,0 +1,80 @@
+
+<html>
+        <head>
+                <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+                <script src="https://code.highcharts.com/highcharts.js"></script>
+                <script src="https://code.highcharts.com/highcharts-more.js"></script>
+                <script src="https://code.highcharts.com/modules/exporting.js"></script>
+                <script src="comment_word_count.json"></script>
+              </head>
+        <body>
+                <div id="container"></div>
+                <button id="plain">Plain</button>
+                <button id="inverted">Inverted</button>
+                <button id="polar">Polar</button>                
+                <script>
+                var jsonData = JSON.parse(comm_word_count);
+
+                var chart = Highcharts.chart('container', {
+
+                title: {
+                text: 'Average Involvement'
+                },
+
+                subtitle: {
+                 text: ''
+                 },
+
+                xAxis: {
+                categories: jsonData.x_axis
+                },
+
+                series: [{
+                type: 'column',
+                colorByPoint: true,
+                data: jsonData.y_axis,
+                showInLegend: false
+                }]
+
+                });
+
+
+                $('#plain').click(function () {
+                chart.update({
+                chart: {
+                inverted: false,
+                polar: false
+                },
+                subtitle: {
+                text: 'Plain'
+                }
+                });
+                });
+
+                $('#inverted').click(function () {
+                chart.update({
+                chart: {
+                inverted: true,
+                polar: false
+                },
+                subtitle: {
+                text: 'Inverted'
+                }
+                });
+                });
+
+                $('#polar').click(function () {
+                chart.update({
+                chart: {
+                inverted: false,
+                polar: true
+                },
+                subtitle: {
+                text: 'Polar'
+                }
+                    });
+                });
+
+                </script>
+                </body>
+</html>
