@@ -8,7 +8,7 @@ I am choosing to write a functional script with no classes for now. Hey, Hackath
 """
 
 from jira import JIRA
-import arrow, time
+import arrow, time, json
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -56,13 +56,13 @@ def plot_arrival_dates(raw_arrival_times):
         else:
             y_points.append(0)
 
-    x_points = np.array(x_points)
-    y_points = np.array(y_points)
-
     rows = [(x,y) for x,y in zip(x_points,y_points)]
-    df = pd.DataFrame(rows,columns=['Date','Number of tickets'])
-    df.plot.bar()
-    plt.show()
+    
+    x_points = [date.strftime('%Y-%m-%d') for date in x_points]
+    json_data = {"x_axis":x_points,"y_axis":y_points}
+    json_data = "arrivalData = '" + json.dumps(json_data) + "';"
+    with open('qa_arrival.json','w') as outfile:
+        outfile.write(json_data)
 
     return
 
