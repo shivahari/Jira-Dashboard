@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+    <script src="qa_arrival.json"></script>
+  </head>
+  <body>
+    <div id="bar-chart" class="ct-chart"></div>
+
+    <script><!--bar chart-->
+      var jsonData = JSON.parse(arrivalData);
+      alert(jsonData.x_axis);
+      alert(jsonData.y_axis);
+      var data = {labels:jsonData.x_axis,series:jsonData.y_axis};
+      var options = {
+      width: 300,
+      height: 200,
+      distributeSeries: true
+      };
+      new Chartist.Bar('#bar-chart',
+      data,
+      options);
+    </script>
+  </body>
+</html>
