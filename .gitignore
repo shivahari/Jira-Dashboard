@@ -1,0 +1,12 @@
+*.pyc
+*.lnk
+logs/
+screenshots/
+log/
+.cache/
+geckodriver.log
+.DS_Store
+debug.log
+__pycache__
+*.orig
+*credentials*.py
