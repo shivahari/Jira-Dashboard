@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="state_time_breakdown.json"></script>
+  </head>
+  <body>
+    <div id="container" style="min-width: 310px; max-width: 800px; height: 400px; margin: 0 auto"></div>
+    <script>
+      var jsonData = JSON.parse(stateTimeData);
+      alert(jsonData.tickets);
+      alert(jsonData.series);
+      Highcharts.chart('container', {
+    chart: {
+        type: 'bar'
+    },
+    title: {
+        text: 'How long are we spending on each state?'
+    },
+    xAxis: {
+        categories: jsonData.tickets
+    },
+    yAxis: {
+        min: 0,
+        title: {
+            text: 'Time spent in each state'
+        }
+    },
+    legend: {
+        reversed: true
+    },
+    plotOptions: {
+        series: {
+            stacking: 'normal'
+        }
+    },
+    series: jsonData.series
+});
+    </script>
+  </body>
+</html>
