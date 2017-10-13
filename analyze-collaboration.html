@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+    <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+  </head>
+  <body>
+    <div id="bar-chart" class="ct-chart">
+    <img src="jira_collaboration_analysis.png"></div>
+
+    <script><!--bar chart-->
+      var jsonData = JSON.parse(arrivalData);
+      var data = {labels:jsonData.x_axis,series:jsonData.y_axis};
+      var options = {
+      width: 300,
+      height: 200,
+      distributeSeries: true
+      };
+      new Chartist.Bar('#bar-chart',
+      data,
+      options);
+    </script>
+  </body>
+</html>
