@@ -10,3 +10,4 @@ debug.log
 __pycache__
 *.orig
 *credentials*.py
+*.json

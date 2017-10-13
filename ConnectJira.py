@@ -10,6 +10,7 @@ import re
 import arrow
 import matplotlib.pyplot as plt
 from time import strftime
+import credentials as secret
 
 class ConnectJira():
     """
@@ -17,20 +18,21 @@ class ConnectJira():
     """
     
     def __init__(self,server,project_name):
-        self.jira_obj = JIRA(server)
+        jira_options = {'server': server}
+        self.jira_obj = JIRA(jira_options, basic_auth=(secret.USERNAME,secret.PASSWORD))
         self.project = project_name
         
 
     def get_issues_in_qa(self):
         "Get the issues"
         status_qa_data_frame = pd.DataFrame(columns=['ticket-ID','status','days'])
-        issues = self.jira_obj.search_issues("'project'='%s' AND status = 'In QA'"%self.project)
+        issues = self.jira_obj.search_issues("'project'='%s' AND status = 'Feature Test' AND updated > -30d"%self.project)
         for issue in issues:
             ticket = self.jira_obj.issue(issue.key,expand='changelog')
             for action in ticket.changelog.histories:
                 for item in action.items:
                     if item.field == 'status':
-                        if item.toString == 'In QA':
+                        if item.toString == 'Feature Test':
                             da_update_date = action.created
                             now_date = arrow.now()
                             ticket_in_qa_time = now_date - arrow.get(da_update_date)
@@ -48,7 +50,8 @@ class ConnectJira():
         "Get the list of JIRA ticket reporters"
         #reporter_list_data_frame = 
         reporter_list = []
-        tickets= self.jira_obj.search_issues("'project'='%s'"%self.project)
+        tickets= self.jira_obj.search_issues("'project'='%s' AND updated > -30d"%self.project)
+        print "Number of tickets that match the filter:",len(tickets)
         for ticket in tickets:
             issue = self.jira_obj.issue(ticket.key)
             reporter = issue.fields.reporter.name 
@@ -59,22 +62,21 @@ class ConnectJira():
 
     def get_description_reporters_data_frame(self):
         "Get a dataframe of reporters and words used in description"
-        reporter_list = self.get_reporter_list()
-        verbose_data_frame = pd.DataFrame(columns=['name','avg_word_count'])
-        for reporter in reporter_list:
-            tickets = self.jira_obj.search_issues("'project'='%s' AND 'reporter'='%s'"%(self.project,reporter))
-            total_word_count = []
-            for ticket in tickets:
-                issue = self.jira_obj.issue(ticket.key)
-                if issue.fields.reporter.name == reporter:
-                    des_word_count =  issue.fields.description.split(' ')
-                    total_word_count.append(len(des_word_count))
-            if total_word_count > 0:
-                avg_words = np.average(total_word_count)
-                verbose_data_frame.loc[len(verbose_data_frame)] = {'name':reporter,'avg_word_count':avg_words}
-        self.verbose_data_frame = verbose_data_frame
+        #reporter_list = self.get_reporter_list()
+        verbose_data_frame = pd.DataFrame(columns=['name','total_word_count','no_times'])
+        tickets= self.jira_obj.search_issues("'project'='%s' AND updated > -30d"%self.project)
+        for ticket in tickets:
+            issue = self.jira_obj.issue(ticket.key)
+            total_word_count = 0
+            reporter = issue.fields.reporter.name
+            if issue.fields.description is not None:
+                total_word_count =  len(issue.fields.description.split(' '))
+            verbose_data_frame.loc[len(verbose_data_frame)] = {'name':reporter,'total_word_count':total_word_count,'no_times':1}
+        unique_verbose_data_frame = verbose_data_frame.groupby(['name']).sum()
+        unique_verbose_data_frame['average'] = unique_verbose_data_frame['total_word_count']/(unique_verbose_data_frame['no_times']*1.0)
+        self.verbose_data_frame = unique_verbose_data_frame
         print self.verbose_data_frame
-        json_data = {"x_axis":list(self.verbose_data_frame['name']),"y_axis":list(self.verbose_data_frame['avg_word_count'])}
+        json_data = {"x_axis":self.verbose_data_frame.index.tolist(),"y_axis":list(self.verbose_data_frame['average'])}
         json_data = "desc_word_count = '" + json.dumps(json_data) + "';"
         with open('description_word_count.json','w') as outfile:
             outfile.write(json_data)
@@ -83,7 +85,7 @@ class ConnectJira():
     def get_comments(self):
         "Get the comments"
         reporter_list = []
-        tickets= self.jira_obj.search_issues("'project'='%s'"%self.project)
+        tickets= self.jira_obj.search_issues("'project'='%s' AND updated > -30d"%self.project)
         comment_authors = []
         comment_authors_data_frame = pd.DataFrame(columns=['name','comment_word_count','no_times'])
         for ticket in tickets:
@@ -100,6 +102,41 @@ class ConnectJira():
             outfile.write(json_data)
 
 
+    def get_components(self):
+        "Get all the components worked on in a given timeframe"
+        tickets= self.jira_obj.search_issues("'project'='%s' AND updated > -30d"%self.project)
+        components_data_frame = pd.DataFrame(columns=['name','no_times'])
+        for ticket in tickets:
+            issue = self.jira_obj.issue(ticket.key)
+            if len(issue.fields.components):
+                for component in issue.fields.components:
+                    components_data_frame.loc[len(components_data_frame)] = {'name':component.name,'no_times':1}
+        self.unique_components_data_frame = components_data_frame.groupby(['name']).sum()
+        print self.unique_components_data_frame
+        json_data = {"x_axis":self.unique_components_data_frame.index.tolist(),"y_axis":list(self.unique_components_data_frame['no_times'])}
+        json_data = "component_count = '" + json.dumps(json_data) + "';"
+        with open('component_count.json','w') as outfile:
+            outfile.write(json_data)
+
+
+    def get_bug_components(self):
+        "Get bugs vs component in a given timeframe"
+        tickets= self.jira_obj.search_issues("'project'='%s' AND environment ~ 'Staging' AND 'createdDate' > '2017/05/29'  and 'type' = bug"%self.project)
+        components_data_frame = pd.DataFrame(columns=['name','no_times'])
+        for ticket in tickets:
+            issue = self.jira_obj.issue(ticket.key)
+            if len(issue.fields.components):
+                for component in issue.fields.components:
+                    components_data_frame.loc[len(components_data_frame)] = {'name':component.name,'no_times':1}
+        self.unique_components_data_frame = components_data_frame.groupby(['name']).sum()
+        print self.unique_components_data_frame
+        json_data = {"x_axis":self.unique_components_data_frame.index.tolist(),"y_axis":list(self.unique_components_data_frame['no_times'])}
+        json_data = "component_bug_count = '" + json.dumps(json_data) + "';"
+        with open('component_bug_count.json','w') as outfile:
+            outfile.write(json_data)
+
+
+
     def plot_graph(self,x_points,y_points):
         "Plot Graph using the X and Y axis passed"
         plt.plot(x_points,y_points)
@@ -107,11 +144,12 @@ class ConnectJira():
 
 
 if __name__ == '__main__':
-    obj = ConnectJira('https://jira.secondlife.com','SUN')
-    obj.get_issues_in_qa()
-    obj.get_description_reporters_data_frame()
-    obj.get_comments()
-
+    obj = ConnectJira(secret.JIRA_URL,secret.PROJECT)
+    #obj.get_issues_in_qa()
+    #obj.get_description_reporters_data_frame()
+    #obj.get_comments()
+    #obj.get_components()
+    obj.get_bug_components()
 
         
     

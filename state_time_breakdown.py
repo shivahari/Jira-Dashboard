@@ -17,20 +17,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime, timedelta
 import pandas as pd
+import credentials as secret
 
-JIRA_URL = 'https://jira.secondlife.com'
-JIRA_PROJECT = 'SUN'
-
-
-def fetch_tickets(last_n_days=30):
-    "Fetch the tickets updated in the last n days"
-    pass
+JIRA_URL = secret.JIRA_URL
+JIRA_PROJECT = secret.PROJECT
 
 
 def get_state_time_information(last_n_days=30):
     "Get the state time information for each of the tickets"
-    jira = JIRA(JIRA_URL)
-    ticket_list = jira.search_issues('project=%s AND updated > -%sd ORDER BY priority DESC'%(JIRA_PROJECT,str(last_n_days)))
+    jira_options = {'server': JIRA_URL}
+    jira = JIRA(jira_options, basic_auth=(secret.USERNAME,secret.PASSWORD))
+    ticket_list = jira.search_issues('project="%s" AND updated > -%sd ORDER BY priority DESC'%(JIRA_PROJECT,str(last_n_days)))
     print '- Fetched %d tickets in for Project %s that were updated in the last %s days'%(len(ticket_list),JIRA_PROJECT,str(last_n_days))
 
     #Create a data structure which is a list of lists like [ticket key,status,assignee,time]
@@ -69,9 +66,9 @@ def get_state_time_information(last_n_days=30):
 def convert_timedelta(duration):
     "Src: https://stackoverflow.com/questions/14190045/how-to-convert-datetime-timedelta-to-minutes-hours-in-python"
     days, seconds = duration.days, duration.seconds
-    days = days + seconds/(3600*24)
+    hours = days*24 + seconds/(3600)
 
-    return days
+    return hours
 
 def run_state_time_analysis(last_n_days=30):
     "Get how long each ticket spent in which state"
@@ -96,7 +93,7 @@ def run_state_time_analysis(last_n_days=30):
             delta = 0
             for row in raw_state_time_information:
                 if row[1]==state and row[0]==ticket:
-                    delta = convert_timedelta(row[3])
+                    delta = -convert_timedelta(row[3])
                     break
             state_delta_row.append(delta)
         my_super_data_structure.append(state_delta_row)
@@ -122,4 +119,4 @@ def run_state_time_analysis(last_n_days=30):
 #----START OF SCRIPT
 if __name__=='__main__':
     print 'Script started'
-    run_state_time_analysis(1500)
+    run_state_time_analysis(15)

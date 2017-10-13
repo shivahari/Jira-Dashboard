@@ -13,15 +13,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from datetime import datetime, timedelta
+import credentials as secret
 
-JIRA_URL = 'https://jira.secondlife.com'
-JIRA_PROJECT = 'SUN'
+JIRA_URL = secret.JIRA_URL
+JIRA_PROJECT = secret.PROJECT
 
 
 def get_queue_arrival_times(state,last_n_days=30):
     "Get the arrival times of a queue"
-    jira = JIRA(JIRA_URL)
-    ticket_list = jira.search_issues('project=%s AND updated > -%sd ORDER BY priority DESC'%(JIRA_PROJECT,str(last_n_days)))
+    jira_options = {'server': JIRA_URL}
+    jira = JIRA(jira_options, basic_auth=(secret.USERNAME,secret.PASSWORD))
+    ticket_list = jira.search_issues('project="%s" AND updated > -%sd ORDER BY priority DESC'%(JIRA_PROJECT,str(last_n_days)))
     print '- Fetched all tickets in for Project %s that were updated in the last %s days'%(JIRA_PROJECT,str(last_n_days))
     arrival_queue = []
     for ticket in ticket_list:
@@ -45,7 +47,7 @@ def plot_arrival_dates(raw_arrival_times):
         arrival_dates.append(my_date.naive)
     time_delta = max(arrival_dates) - min(arrival_dates)
     num_days =  int(time_delta.days)
-    x_points = [max(arrival_dates) - timedelta(days=x) for x in range(-10,num_days+10)]
+    x_points = [max(arrival_dates) - timedelta(days=x) for x in range(-1,num_days+1)]
 
     y_points = []
     for date in x_points:
@@ -80,10 +82,10 @@ def run_queue_arrival_analysis(state,last_n_days=30):
 
 def run_qa_queue_arrival_analysis(last_n_days=30):
     "Plot data about when a ticket transitions into the 'In QA' status"
-    run_queue_arrival_analysis('In QA',last_n_days=last_n_days)
+    run_queue_arrival_analysis('Feature Test',last_n_days=last_n_days)
 
 
 #----START OF SCRIPT
 if __name__=='__main__':
     print 'Script started'
-    run_qa_queue_arrival_analysis(1500)
+    run_qa_queue_arrival_analysis(15)

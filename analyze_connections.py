@@ -17,15 +17,17 @@ import numpy as np
 from datetime import datetime, timedelta
 import pandas as pd
 import networkx as nx
+import credentials as secret
 
-JIRA_URL = 'https://jira.secondlife.com'
-JIRA_PROJECT = 'SUN'
+JIRA_URL = secret.JIRA_URL
+JIRA_PROJECT = secret.PROJECT
 
 
 def get_collaboration_information(last_n_days=30):
     "Get the state time information for each of the tickets"
-    jira = JIRA(JIRA_URL)
-    ticket_list = jira.search_issues('project=%s AND updated > -%sd ORDER BY priority DESC'%(JIRA_PROJECT,str(last_n_days)))
+    jira_options = {'server': JIRA_URL}
+    jira = JIRA(jira_options, basic_auth=(secret.USERNAME,secret.PASSWORD))
+    ticket_list = jira.search_issues('project="%s" AND updated > -%sd ORDER BY priority DESC'%(JIRA_PROJECT,str(last_n_days)))
     print '- Fetched %d tickets in for Project %s that were updated in the last %s days'%(len(ticket_list),JIRA_PROJECT,str(last_n_days))
 
     #Create a data structure which is a list of lists like ['employee 1','employee 2',...]
@@ -140,4 +142,4 @@ def run_collaboration_analysis(last_n_days=30):
 #----START OF SCRIPT
 if __name__=='__main__':
     print 'Script started'
-    run_collaboration_analysis(1500)
+    run_collaboration_analysis(15)

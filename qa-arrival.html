@@ -12,8 +12,6 @@
       var jsonData = JSON.parse(arrivalData);
       var data = {labels:jsonData.x_axis,series:jsonData.y_axis};
       var options = {
-      width: 300,
-      height: 200,
       distributeSeries: true
       };
       new Chartist.Bar('#bar-chart',
