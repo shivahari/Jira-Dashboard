@@ -55,7 +55,9 @@ def get_state_time_information(last_n_days=30):
             #Update the row only if either assignee or status change
             if current_status != prev_status or current_assignee != prev_assignee:
                 time_spent = current_action_time - prev_action_time if prev_action_time != 0 else current_action_time - current_action_time
-                status_assignee_time.append([ticket.key,current_status,current_assignee,time_spent])
+                if len(status_assignee_time)>0:
+                    status_assignee_time[-1][-1] = time_spent
+                status_assignee_time.append([ticket.key,current_status,current_assignee,current_action_time - current_action_time])
                 if current_assignee != prev_assignee:
                     prev_assignee = current_assignee
                 if current_status != prev_status:
