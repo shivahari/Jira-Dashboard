@@ -4,14 +4,14 @@ from utils import ConnectJira
 #Create an instance of the Flask class
 app = Flask(__name__)
 
-@app.route('/dashboard/')
+@app.route('/dashboard')
 def dashboard():
     "The dashboard page"
 
     return render_template('dashboard.html')
 
 
-@app.route('/results/',methods=['GET','POST'])
+@app.route('/results',methods=['GET','POST'])
 def results():
     "The results page"
     if request.method == 'POST':
@@ -32,4 +32,4 @@ def results():
 
 if __name__ == '__main__':
     #run the app
-    app.run(host='127.0.0.1',port=5000)
+    app.run(host='127.0.0.1',port=5000,debug=True)
