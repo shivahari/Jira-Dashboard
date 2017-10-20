@@ -1,11 +1,11 @@
 
-<html>
+
         <head>
                 <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
                 <script src="https://code.highcharts.com/highcharts.js"></script>
                 <script src="https://code.highcharts.com/highcharts-more.js"></script>
                 <script src="https://code.highcharts.com/modules/exporting.js"></script>
-                <script src="comment_word_count.json"></script>
+                <script src="./static/data/comment_word_count.json"></script>
               </head>
         <body>
                 <div id="container"></div>
@@ -15,7 +15,7 @@
                 <script>
                 var jsonData = JSON.parse(comm_word_count);
 
-                var chart = Highcharts.chart('container', {
+                var chart = Highcharts.chart('container1', {
 
                 title: {
                 text: 'Average Involvement'
@@ -77,4 +77,3 @@
 
                 </script>
                 </body>
-</html>
