@@ -1,5 +1,5 @@
 """
-Connect to Jira server and get the issue in QA
+Connect to JIRA server and get data 
 """
 
 from jira import JIRA
@@ -10,29 +10,29 @@ import re
 import arrow
 import matplotlib.pyplot as plt
 from time import strftime
-import credentials as secret
+
 
 class ConnectJira():
     """
     Connect Jira class to connect to establish connections
     """
     
-    def __init__(self,server,project_name):
+    def __init__(self,server,project_name,username,password):
         jira_options = {'server': server}
-        self.jira_obj = JIRA(jira_options, basic_auth=(secret.USERNAME,secret.PASSWORD))
+        self.jira_obj = JIRA(jira_options, basic_auth=(username,password))
         self.project = project_name
-        
 
-    def get_issues_in_qa(self):
+
+    def get_issues_in_qa(self,status_string):
         "Get the issues"
         status_qa_data_frame = pd.DataFrame(columns=['ticket-ID','status','days'])
-        issues = self.jira_obj.search_issues("'project'='%s' AND status = 'Feature Test' AND updated > -30d"%self.project)
+        issues = self.jira_obj.search_issues("'project'='%s' AND status = '%s' AND updated > -30d"%(self.project,status_string))
         for issue in issues:
             ticket = self.jira_obj.issue(issue.key,expand='changelog')
             for action in ticket.changelog.histories:
                 for item in action.items:
                     if item.field == 'status':
-                        if item.toString == 'Feature Test':
+                        if item.toString == status_string:
                             da_update_date = action.created
                             now_date = arrow.now()
                             ticket_in_qa_time = now_date - arrow.get(da_update_date)
@@ -102,9 +102,9 @@ class ConnectJira():
             outfile.write(json_data)
 
 
-    def get_components(self):
+    def get_components(self,days=30):
         "Get all the components worked on in a given timeframe"
-        tickets= self.jira_obj.search_issues("'project'='%s' AND updated > -30d"%self.project)
+        tickets= self.jira_obj.search_issues("'project'='%s' AND updated > -%sd"%(self.project,str(days)))
         components_data_frame = pd.DataFrame(columns=['name','no_times'])
         for ticket in tickets:
             issue = self.jira_obj.issue(ticket.key)
@@ -119,57 +119,9 @@ class ConnectJira():
             outfile.write(json_data)
 
 
-    def get_bug_components(self):
-        "Get bugs vs component in a given timeframe"
-        tickets= self.jira_obj.search_issues("'project'='%s' AND environment ~ 'Staging' AND 'createdDate' > '2017/05/29'  and 'type' = bug"%self.project)
-        components_data_frame = pd.DataFrame(columns=['name','no_times'])
-        for ticket in tickets:
-            issue = self.jira_obj.issue(ticket.key)
-            if len(issue.fields.components):
-                for component in issue.fields.components:
-                    components_data_frame.loc[len(components_data_frame)] = {'name':component.name,'no_times':1}
-        self.unique_components_data_frame = components_data_frame.groupby(['name']).sum()
-        print self.unique_components_data_frame
-        json_data = {"x_axis":self.unique_components_data_frame.index.tolist(),"y_axis":list(self.unique_components_data_frame['no_times'])}
-        json_data = "component_bug_count = '" + json.dumps(json_data) + "';"
-        with open('component_bug_count.json','w') as outfile:
-            outfile.write(json_data)
-
-
-
     def plot_graph(self,x_points,y_points):
         "Plot Graph using the X and Y axis passed"
         plt.plot(x_points,y_points)
         plt.show()
-
-
-if __name__ == '__main__':
-    obj = ConnectJira(secret.JIRA_URL,secret.PROJECT)
-    #obj.get_issues_in_qa()
-    #obj.get_description_reporters_data_frame()
-    #obj.get_comments()
-    #obj.get_components()
-    obj.get_bug_components()
-
-        
-    
-    
-
-
-
-
-            
-
-
-
-
-
-
-
-
-
-
-
-
 
 
