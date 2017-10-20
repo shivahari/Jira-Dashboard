@@ -1,0 +1,20 @@
+
+<html>
+        <head>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+                <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+                <script src="get_issue_in_qa.json"></script>
+              </head>
+        <body>
+                <div class="ct-chart" style="width: 60%; height:400px;"><h3>Number of days in QA status</h3></div>
+                <script>
+                var jsonData = JSON.parse(get_issue);
+                new Chartist.Bar('.ct-chart', {
+                    labels: jsonData.x_axis,
+                    series: jsonData.y_axis
+                  }, {
+                    distributeSeries: true
+                  });
+                </script>
+                </body>
+</html>
