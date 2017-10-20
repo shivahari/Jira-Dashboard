@@ -8,7 +8,7 @@ app = Flask(__name__)
 def dashboard():
     "The dashboard page"
 
-   return render_template('dashboard.html')
+    return render_template('dashboard.html')
 
 
 @app.route('/results/',methods=['GET','POST'])
