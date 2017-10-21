@@ -4,16 +4,16 @@ from utils import ConnectJira
 #Create an instance of the Flask class
 app = Flask(__name__)
 
-@app.route('/dashboard')
+@app.route('/')
 def dashboard():
-    "The dashboard page"
+    "The home page"
 
-    return render_template('dashboard.html')
+    return render_template('home.html')
 
 
-@app.route('/results',methods=['GET','POST'])
+@app.route('/dashboard',methods=['GET','POST'])
 def results():
-    "The results page"
+    "The dashboard page"
     if request.method == 'POST':
         #Get the keys and values from the form object
         result = request.form
@@ -27,7 +27,7 @@ def results():
         jira_obj.get_description_reporters_data_frame()
         jira_obj.get_comments()
 
-        return render_template('results.html',result=result)
+        return render_template('dashboard.html')
 
 
 if __name__ == '__main__':
